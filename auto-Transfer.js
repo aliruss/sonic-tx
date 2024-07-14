@@ -14,9 +14,17 @@ const promptUser = (query) => {
 };
 
 const main = async () => {
-  // Prompt the user for the private key and recipient address
+  // Prompt the user for the private key, recipient address, and pause hour
   const privateKey = await promptUser('Enter your private key: ');
   const recipientAddress = await promptUser('Enter the recipient address: ');
+  let pauseHour = await promptUser('Enter the hour (UTC) to pause until the next day (default is 1 AM): ');
+
+  // Set default hour to 1 AM if no input is provided
+  if (!pauseHour) {
+    pauseHour = 1;
+  } else {
+    pauseHour = parseInt(pauseHour, 10);
+  }
 
   rl.close();
 
@@ -35,12 +43,12 @@ const main = async () => {
     return Math.floor(Math.random() * 6 + 15) * 1000;
   };
 
-  const getDelayUntilNextDay1AMUTC = () => {
+  const getDelayUntilNextDayHourUTC = (hour) => {
     const now = new Date();
-    const nextDay1AMUTC = new Date(now);
-    nextDay1AMUTC.setUTCDate(now.getUTCDate() + 1);
-    nextDay1AMUTC.setUTCHours(1, 0, 0, 0);
-    return nextDay1AMUTC - now;
+    const nextDayHourUTC = new Date(now);
+    nextDayHourUTC.setUTCDate(now.getUTCDate() + 1);
+    nextDayHourUTC.setUTCHours(hour, 0, 0, 0);
+    return nextDayHourUTC - now;
   };
 
   const transferToRecipient = async () => {
@@ -72,9 +80,9 @@ const main = async () => {
       }
 
       if (successfulTransactions >= 103) {
-        const delayUntilNextDay1AMUTC = getDelayUntilNextDay1AMUTC();
-        console.log(`Pausing until next day at 1 AM UTC (${delayUntilNextDay1AMUTC / 1000} seconds)`);
-        await new Promise((resolve) => setTimeout(resolve, delayUntilNextDay1AMUTC));
+        const delayUntilNextDayHourUTC = getDelayUntilNextDayHourUTC(pauseHour);
+        console.log(`Pausing until next day at ${pauseHour}:00 UTC (${delayUntilNextDayHourUTC / 1000} seconds)`);
+        await new Promise((resolve) => setTimeout(resolve, delayUntilNextDayHourUTC));
         successfulTransactions = 0; // Reset the counter for the next day
       } else {
         const delay = getRandomDelay();
