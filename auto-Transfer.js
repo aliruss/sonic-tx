@@ -14,17 +14,9 @@ const promptUser = (query) => {
 };
 
 const main = async () => {
-  // Prompt the user for the private key, recipient address, and pause hour
+  // Prompt the user for the private key and recipient address
   const privateKey = await promptUser('Enter your private key: ');
   const recipientAddress = await promptUser('Enter the recipient address: ');
-  let pauseHour = await promptUser('Enter the hour (UTC) to pause until the next day (default is 1 AM): ');
-
-  // Set default hour to 1 AM if no input is provided
-  if (!pauseHour) {
-    pauseHour = 1;
-  } else {
-    pauseHour = parseInt(pauseHour, 10);
-  }
 
   rl.close();
 
@@ -41,6 +33,11 @@ const main = async () => {
   const getRandomDelay = () => {
     // Generate a random delay between 15 and 20 seconds
     return Math.floor(Math.random() * 6 + 15) * 1000;
+  };
+
+  const getRandomHourBetween1And4AMUTC = () => {
+    // Generate a random hour between 1 and 4 AM UTC
+    return Math.floor(Math.random() * 4 + 1);
   };
 
   const getDelayUntilNextDayHourUTC = (hour) => {
@@ -80,8 +77,9 @@ const main = async () => {
       }
 
       if (successfulTransactions >= 103) {
-        const delayUntilNextDayHourUTC = getDelayUntilNextDayHourUTC(pauseHour);
-        console.log(`Pausing until next day at ${pauseHour}:00 UTC (${delayUntilNextDayHourUTC / 1000} seconds)`);
+        const randomHour = getRandomHourBetween1And4AMUTC();
+        const delayUntilNextDayHourUTC = getDelayUntilNextDayHourUTC(randomHour);
+        console.log(`Pausing until next day at ${randomHour}:00 UTC (${delayUntilNextDayHourUTC / 1000} seconds)`);
         await new Promise((resolve) => setTimeout(resolve, delayUntilNextDayHourUTC));
         successfulTransactions = 0; // Reset the counter for the next day
       } else {
